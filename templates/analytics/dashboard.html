@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Uy-Joy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="/">
+            <i class="fas fa-home me-2"></i>Uy-Joy
+        </a>
+        <div class="d-flex gap-2">
+            <a href="/e-lonlar/yangi/" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i>E'lon berish
+            </a>
+            <a href="/accounts/logout/" class="btn btn-outline-light btn-sm">Chiqish</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-4 px-4">
+    <div class="row g-4">
+
+        <!-- Sidebar -->
+        <div class="col-lg-2">
+            <div class="card p-3">
+                <div class="text-center mb-3">
+                    <div class="avatar avatar-lg mx-auto mb-2">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <p class="fw-bold mb-0 small">{{ user.username }}</p>
+                    <small class="text-muted">{{ user.get_role_display }}</small>
+                </div>
+                <hr>
+                <a href="/analytics/" class="sidebar-link active">
+                    <i class="fas fa-chart-bar"></i>Dashboard
+                </a>
+                <a href="/e-lonlar/mening/" class="sidebar-link">
+                    <i class="fas fa-list"></i>E'lonlarim
+                </a>
+                <a href="/chat/" class="sidebar-link">
+                    <i class="fas fa-comments"></i>Xabarlar
+                </a>
+                <a href="/accounts/profile/" class="sidebar-link">
+                    <i class="fas fa-user"></i>Profil
+                </a>
+                <a href="/payments/" class="sidebar-link">
+                    <i class="fas fa-credit-card"></i>To'lovlar
+                </a>
+                {% if user.is_staff %}
+                <hr>
+                <a href="/analytics/statistika/" class="sidebar-link">
+                    <i class="fas fa-chart-pie"></i>Statistika
+                </a>
+                <a href="/admin/" class="sidebar-link">
+                    <i class="fas fa-cog"></i>Admin panel
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="col-lg-10">
+            <h5 class="fw-bold mb-4">
+                Salom, {{ user.get_full_name|default:user.username }}!
+            </h5>
+
+            <!-- Stat cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="stat-label mb-1">Jami e'lonlar</p>
+                                <div class="stat-value">{{ my_listings.count }}</div>
+                            </div>
+                            <div class="stat-icon bg-primary bg-opacity-10">
+                                <i class="fas fa-home text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="stat-label mb-1">Faol e'lonlar</p>
+                                <div class="stat-value">{{ active_listings }}</div>
+                            </div>
+                            <div class="stat-icon bg-success bg-opacity-10">
+                                <i class="fas fa-check-circle text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="stat-label mb-1">Ko'rishlar</p>
+                                <div class="stat-value">{{ total_views }}</div>
+                            </div>
+                            <div class="stat-icon bg-info bg-opacity-10">
+                                <i class="fas fa-eye text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="stat-label mb-1">Kutilayotgan</p>
+                                <div class="stat-value">{{ pending_listings }}</div>
+                            </div>
+                            <div class="stat-icon bg-warning bg-opacity-10">
+                                <i class="fas fa-clock text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- E'lonlar -->
+                <div class="col-lg-8">
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">
+                                <i class="fas fa-list text-primary me-2"></i>Mening e'lonlarim
+                            </h6>
+                            <a href="/e-lonlar/yangi/" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Yangi
+                            </a>
+                        </div>
+                        {% if my_listings %}
+                            {% for listing in my_listings|slice:":8" %}
+                            <div class="d-flex align-items-center gap-3 p-2 rounded-3 mb-2" style="background:#f8fafc;">
+                                {% if listing.images.first %}
+                                    <img src="{{ listing.images.first.image.url }}"
+                                        style="width:60px;height:50px;object-fit:cover;border-radius:8px;" alt="">
+                                {% else %}
+                                    <div style="width:60px;height:50px;background:#e2e8f0;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas fa-home text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <p class="fw-bold small mb-0">{{ listing.title|truncatechars:35 }}</p>
+                                    <small class="text-muted">
+                                        {{ listing.price|floatformat:0 }} UZS
+                                        &nbsp;·&nbsp;
+                                        <i class="fas fa-eye me-1"></i>{{ listing.views_count }}
+                                    </small>
+                                </div>
+                                <span class="badge {% if listing.status == 'active' %}bg-success{% elif listing.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ listing.get_status_display }}
+                                </span>
+                                <div class="d-flex gap-1">
+                                    <a href="/e-lonlar/{{ listing.slug }}/"
+                                        class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/e-lonlar/{{ listing.slug }}/tahrirlash/"
+                                        class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="/e-lonlar/{{ listing.slug }}/ochirish/"
+                                        class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if my_listings.count > 8 %}
+                            <div class="text-center mt-3">
+                                <a href="/e-lonlar/mening/" class="btn btn-outline-primary btn-sm">
+                                    Barchasini ko'rish ({{ my_listings.count }})
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Hozircha e'lonlar yo'q</p>
+                            <a href="/e-lonlar/yangi/" class="btn btn-primary btn-sm">E'lon berish</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Yon panel -->
+                <div class="col-lg-4">
+
+                    <!-- Tezkor havolalar -->
+                    <div class="card p-4 mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-bolt text-warning me-2"></i>Tezkor havolalar
+                        </h6>
+                        <div class="d-grid gap-2">
+                            <a href="/e-lonlar/yangi/" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-2"></i>Yangi e'lon berish
+                            </a>
+                            <a href="/chat/" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-comments me-2"></i>Xabarlar
+                            </a>
+                            <a href="/payments/premium/" class="btn btn-warning btn-sm">
+                                <i class="fas fa-crown me-2"></i>Premium obuna
+                            </a>
+                            <a href="/accounts/profile/" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-user me-2"></i>Profilni tahrirlash
+                            </a>
+                            <a href="/search/" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-search me-2"></i>Qidiruv
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Statistika -->
+                    <div class="card p-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-chart-bar text-primary me-2"></i>Statistika
+                        </h6>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Faol e'lonlar</small>
+                                <small class="fw-bold">{{ active_listings }}/{{ my_listings.count }}</small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success"
+                                    style="width:{% if my_listings.count > 0 %}{% widthratio active_listings my_listings.count 100 %}{% else %}0{% endif %}%">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Kutilayotgan</small>
+                                <small class="fw-bold">{{ pending_listings }}</small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning"
+                                    style="width:{% if my_listings.count > 0 %}{% widthratio pending_listings my_listings.count 100 %}{% else %}0{% endif %}%">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Soxta e'lonlar</small>
+                                <small class="fw-bold text-danger">{{ fake_listings }}</small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-danger"
+                                    style="width:{% if my_listings.count > 0 %}{% widthratio fake_listings my_listings.count 100 %}{% else %}0{% endif %}%">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">30 kunlik ko'rishlar</small>
+                                <small class="fw-bold">{{ recent_views }}</small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" style="width:60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

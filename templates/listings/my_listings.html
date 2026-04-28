@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mening e'lonlarim — Uy-Joy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/"><i class="fas fa-home me-2"></i>Uy-Joy</a>
+        <div class="d-flex gap-2">
+            <a href="/e-lonlar/yangi/" class="btn btn-light btn-sm">
+                <i class="fas fa-plus me-1"></i>Yangi e'lon
+            </a>
+            <a href="/analytics/" class="btn btn-outline-light btn-sm">Dashboard</a>
+            <a href="/accounts/logout/" class="btn btn-outline-light btn-sm">Chiqish</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">
+            <i class="fas fa-list text-primary me-2"></i>Mening e'lonlarim
+        </h4>
+        <a href="/e-lonlar/yangi/" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Yangi e'lon
+        </a>
+    </div>
+
+    {% if listings %}
+    <div class="row g-4">
+        {% for listing in listings %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card listing-card h-100">
+                <div class="img-wrap position-relative">
+                    {% if listing.images.first %}
+                        <img src="{{ listing.images.first.image.url }}"
+                            class="card-img-top" alt="{{ listing.title }}">
+                    {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                            style="height:200px;">
+                            <i class="fas fa-home fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <span class="badge bg-primary badge-overlay">
+                        {{ listing.get_listing_type_display }}
+                    </span>
+                    <span class="badge {% if listing.status == 'active' %}bg-success{% elif listing.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %} badge-overlay"
+                        style="top:12px;left:auto;right:12px;">
+                        {{ listing.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">{{ listing.title|truncatechars:40 }}</h6>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                        {{ listing.address|truncatechars:35 }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="price-tag">{{ listing.price|floatformat:0 }} UZS</span>
+                        <small class="text-muted">
+                            <i class="fas fa-eye me-1"></i>{{ listing.views_count }}
+                        </small>
+                    </div>
+                    {% if listing.is_fake %}
+                    <div class="alert alert-danger py-1 px-2 small mb-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Soxta deb belgilangan
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <div class="d-flex gap-2">
+                        <a href="/e-lonlar/{{ listing.slug }}/"
+                            class="btn btn-outline-primary btn-sm flex-fill">
+                            <i class="fas fa-eye me-1"></i>Ko'rish
+                        </a>
+                        <a href="/e-lonlar/{{ listing.slug }}/tahrirlash/"
+                            class="btn btn-outline-secondary btn-sm flex-fill">
+                            <i class="fas fa-edit me-1"></i>Tahrir
+                        </a>
+                        <a href="/e-lonlar/{{ listing.slug }}/ochirish/"
+                            class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-home fa-4x text-muted mb-4"></i>
+        <h5 class="text-muted">Hozircha e'lonlar yo'q</h5>
+        <p class="text-muted">Birinchi e'loningizni bering!</p>
+        <a href="/e-lonlar/yangi/" class="btn btn-primary mt-2">
+            <i class="fas fa-plus me-2"></i>E'lon berish
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil — Uy-Joy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background:#f8fafc; }
+        .navbar { background:#2563eb !important; }
+        .profile-card { border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+        .avatar-wrap { position:relative; display:inline-block; }
+        .avatar-img { width:100px; height:100px; border-radius:50%; object-fit:cover; border:4px solid #2563eb; }
+        .avatar-default { width:100px; height:100px; border-radius:50%; background:#2563eb; display:flex; align-items:center; justify-content:center; color:white; font-size:2.5rem; }
+        .stat-box { background:#f1f5f9; border-radius:12px; padding:16px; text-align:center; }
+        .listing-mini { border:none; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+        .listing-mini img { height:140px; object-fit:cover; border-radius:10px 10px 0 0; }
+        .badge-role { font-size:0.75rem; }
+        .face-section { border:2px dashed #2563eb; border-radius:12px; padding:20px; }
+        #video { width:100%; border-radius:10px; display:none; }
+        #canvas { display:none; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/"><i class="fas fa-home me-2"></i>Uy-Joy</a>
+        <div class="d-flex gap-2">
+            <a href="/e-lonlar/yangi/" class="btn btn-light btn-sm">E'lon berish</a>
+            <a href="/accounts/logout/" class="btn btn-outline-light btn-sm">Chiqish</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="row g-4">
+
+        <!-- Profil kartasi -->
+        <div class="col-lg-4">
+            <div class="card profile-card p-4 text-center">
+                <div class="avatar-wrap mx-auto mb-3">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" class="avatar-img" alt="Avatar">
+                    {% else %}
+                        <div class="avatar-default mx-auto">
+                            {{ user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h5 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                <p class="text-muted small mb-2">@{{ user.username }}</p>
+                <span class="badge bg-primary badge-role mb-3">
+                    {{ user.get_role_display }}
+                </span>
+                {% if user.is_verified %}
+                    <div class="mb-3">
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Tasdiqlangan
+                        </span>
+                    </div>
+                {% endif %}
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <h6 class="fw-bold mb-0">{{ user.listings.count }}</h6>
+                            <small class="text-muted">E'lonlar</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <h6 class="fw-bold mb-0">{{ user.saved.count }}</h6>
+                            <small class="text-muted">Saqlangan</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-box">
+                            <h6 class="fw-bold mb-0">
+                                {% if user.face_encoding %}
+                                    <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                {% endif %}
+                            </h6>
+                            <small class="text-muted">Yuz ID</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-start">
+                    {% if user.phone %}
+                    <p class="small mb-1">
+                        <i class="fas fa-phone text-primary me-2"></i>{{ user.phone }}
+                    </p>
+                    {% endif %}
+                    <p class="small mb-1">
+                        <i class="fas fa-envelope text-primary me-2"></i>{{ user.email }}
+                    </p>
+                    <p class="small mb-0">
+                        <i class="fas fa-calendar text-primary me-2"></i>
+                        {{ user.date_joined|date:"d.m.Y" }} dan a'zo
+                    </p>
+                </div>
+            </div>
+
+            <!-- Yuz ro'yxatdan o'tish -->
+            <div class="card profile-card p-4 mt-3">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-camera text-primary me-2"></i>Yuz aniqlash
+                </h6>
+                {% if user.face_encoding %}
+                <div class="alert alert-success small mb-3">
+                    <i class="fas fa-check-circle me-2"></i>Yuz ro'yxatdan o'tgan
+                </div>
+                {% endif %}
+                <div class="face-section">
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas"></canvas>
+                    <img id="facePreview" style="width:100%;border-radius:10px;display:none;" class="mb-2">
+                    <div id="faceMsg" class="alert small" style="display:none;"></div>
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-primary btn-sm" id="startBtn" onclick="startCamera()">
+                            <i class="fas fa-camera me-2"></i>Kamerani yoqish
+                        </button>
+                        <button class="btn btn-success btn-sm" id="captureBtn" onclick="captureFace()" style="display:none;">
+                            <i class="fas fa-check me-2"></i>Rasmga olish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E'lonlar va sozlamalar -->
+        <div class="col-lg-8">
+
+            <!-- Mening e'lonlarim -->
+            <div class="card profile-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="fas fa-list text-primary me-2"></i>Mening e'lonlarim
+                    </h6>
+                    <a href="/e-lonlar/yangi/" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Yangi
+                    </a>
+                </div>
+                {% if user.listings.all %}
+                <div class="row g-3">
+                    {% for listing in user.listings.all|slice:":6" %}
+                    <div class="col-md-6">
+                        <div class="card listing-mini">
+                            {% if listing.images.first %}
+                                <img src="{{ listing.images.first.image.url }}" alt="{{ listing.title }}">
+                            {% else %}
+                                <div style="height:140px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;border-radius:10px 10px 0 0;">
+                                    <i class="fas fa-home fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <p class="fw-bold small mb-1">{{ listing.title|truncatechars:30 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary small fw-bold">
+                                        {{ listing.price|floatformat:0 }} UZS
+                                    </span>
+                                    <span class="badge {% if listing.status == 'active' %}bg-success{% elif listing.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %} small">
+                                        {{ listing.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-1 mt-2">
+                                    <a href="/e-lonlar/{{ listing.slug }}/" class="btn btn-outline-primary btn-sm flex-fill">Ko'rish</a>
+                                    <a href="/e-lonlar/{{ listing.slug }}/tahrirlash/" class="btn btn-outline-secondary btn-sm flex-fill">Tahrir</a>
+                                    <a href="/e-lonlar/{{ listing.slug }}/ochirish/" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if user.listings.count > 6 %}
+                <div class="text-center mt-3">
+                    <a href="/e-lonlar/mening/" class="btn btn-outline-primary btn-sm">
+                        Barchasini ko'rish ({{ user.listings.count }})
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Hozircha e'lonlar yo'q</p>
+                    <a href="/e-lonlar/yangi/" class="btn btn-primary btn-sm">E'lon berish</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Saqlangan e'lonlar -->
+            <div class="card profile-card p-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-heart text-danger me-2"></i>Saqlangan e'lonlar
+                </h6>
+                {% if user.saved.all %}
+                <div class="row g-3">
+                    {% for saved in user.saved.all|slice:":4" %}
+                    <div class="col-md-6">
+                        <div class="card listing-mini">
+                            <div class="card-body p-2">
+                                <p class="fw-bold small mb-1">{{ saved.listing.title|truncatechars:30 }}</p>
+                                <span class="text-primary small fw-bold">
+                                    {{ saved.listing.price|floatformat:0 }} UZS
+                                </span>
+                                <div class="mt-2">
+                                    <a href="/e-lonlar/{{ saved.listing.slug }}/"
+                                        class="btn btn-outline-primary btn-sm w-100">Ko'rish</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-heart fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small">Saqlangan e'lonlar yo'q</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let stream = null;
+
+async function startCamera() {
+    const video = document.getElementById('video');
+    video.style.display = 'block';
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('captureBtn').style.display = 'block';
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+}
+
+async function captureFace() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageData = canvas.toDataURL('image/jpeg');
+    const preview = document.getElementById('facePreview');
+    preview.src = imageData;
+    preview.style.display = 'block';
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    video.style.display = 'none';
+    document.getElementById('captureBtn').style.display = 'none';
+
+    const msg = document.getElementById('faceMsg');
+    msg.style.display = 'block';
+    msg.className = 'alert alert-info small';
+    msg.textContent = 'Yuz saqlanmoqda...';
+
+    const token = localStorage.getItem('access_token');
+    try {
+        const response = await fetch('/api/accounts/face-register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ image: imageData })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            msg.className = 'alert alert-success small';
+            msg.textContent = 'Yuz muvaffaqiyatli saqlandi!';
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            msg.className = 'alert alert-danger small';
+            msg.textContent = data.error || 'Xatolik!';
+            document.getElementById('startBtn').style.display = 'block';
+        }
+    } catch(e) {
+        msg.className = 'alert alert-danger small';
+        msg.textContent = 'Xatolik yuz berdi!';
+    }
+}
+</script>
+</body>
+</html>

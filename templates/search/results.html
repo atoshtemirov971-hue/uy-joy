@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qidiruv — Uy-Joy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background:#f8fafc; }
+        .navbar { background:#2563eb !important; }
+        .filter-card { border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+        .listing-card { border:none; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.06); transition:transform 0.3s; overflow:hidden; }
+        .listing-card:hover { transform:translateY(-4px); }
+        .listing-card img { height:180px; object-fit:cover; }
+        .price-tag { color:#2563eb; font-weight:700; }
+        .badge-type { position:absolute; top:10px; left:10px; }
+        .search-hero { background:linear-gradient(135deg, #2563eb, #1e40af); padding:40px 0; color:white; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/"><i class="fas fa-home me-2"></i>Uy-Joy</a>
+        <div class="d-flex gap-2">
+            {% if user.is_authenticated %}
+                <a href="/accounts/profile/" class="btn btn-outline-light btn-sm">{{ user.username }}</a>
+            {% else %}
+                <a href="/accounts/login/" class="btn btn-outline-light btn-sm">Kirish</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Search hero -->
+<div class="search-hero">
+    <div class="container">
+        <form method="GET" action="/search/">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control form-control-lg"
+                        value="{{ query }}" placeholder="Qidirish...">
+                </div>
+                <div class="col-md-2">
+                    <select name="type" class="form-select form-select-lg">
+                        <option value="">Barchasi</option>
+                        <option value="sale" {% if request.GET.type == 'sale' %}selected{% endif %}>Sotuv</option>
+                        <option value="rent" {% if request.GET.type == 'rent' %}selected{% endif %}>Ijara</option>
+                        <option value="daily" {% if request.GET.type == 'daily' %}selected{% endif %}>Kunlik</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="region" class="form-select form-select-lg">
+                        <option value="">Viloyat</option>
+                        {% for region in regions %}
+                        <option value="{{ region.slug }}" {% if request.GET.region == region.slug %}selected{% endif %}>
+                            {{ region.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-light btn-lg w-100">
+                        <i class="fas fa-search me-2"></i>Qidirish
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+
+        <!-- Filter -->
+        <div class="col-lg-3">
+            <div class="card filter-card p-3">
+                <h6 class="fw-bold mb-3"><i class="fas fa-sliders-h me-2"></i>Qo'shimcha filter</h6>
+                <form method="GET" action="/search/">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Min narx</label>
+                        <input type="number" name="min_price" class="form-control form-control-sm"
+                            value="{{ request.GET.min_price }}" placeholder="0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Max narx</label>
+                        <input type="number" name="max_price" class="form-control form-control-sm"
+                            value="{{ request.GET.max_price }}" placeholder="999999999">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Xonalar</label>
+                        <select name="rooms" class="form-select form-select-sm">
+                            <option value="">Barchasi</option>
+                            {% for i in '1234567' %}
+                            <option value="{{ i }}" {% if request.GET.rooms == i %}selected{% endif %}>
+                                {{ i }} xona
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tartiblash</label>
+                        <select name="ordering" class="form-select form-select-sm">
+                            <option value="-created_at">Yangi</option>
+                            <option value="price">Arzon</option>
+                            <option value="-price">Qimmat</option>
+                            <option value="-views_count">Mashhur</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 btn-sm">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <a href="/search/" class="btn btn-outline-secondary w-100 btn-sm mt-2">Tozalash</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Natijalar -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">
+                    {% if query %}
+                        "{{ query }}" bo'yicha
+                    {% endif %}
+                    {{ total }} ta natija topildi
+                </h6>
+            </div>
+
+            {% if listings %}
+            <div class="row g-3">
+                {% for listing in listings %}
+                <div class="col-md-6 col-xl-4">
+                    <div class="card listing-card h-100">
+                        <div class="position-relative">
+                            {% if listing.images.first %}
+                                <img src="{{ listing.images.first.image.url }}"
+                                    class="card-img-top" alt="{{ listing.title }}">
+                            {% else %}
+                                <div style="height:180px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fas fa-home fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <span class="badge bg-primary badge-type">
+                                {{ listing.get_listing_type_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold mb-1">{{ listing.title|truncatechars:35 }}</h6>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ listing.address|truncatechars:30 }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="price-tag">{{ listing.price|floatformat:0 }} UZS</span>
+                                <small class="text-muted">{{ listing.area }}m² · {{ listing.rooms }}x</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <a href="/e-lonlar/{{ listing.slug }}/"
+                                class="btn btn-primary w-100 btn-sm">Batafsil</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                <h5 class="text-muted">Natija topilmadi</h5>
+                <p class="text-muted">Boshqa kalit so'z yoki filter bilan urinib ko'ring</p>
+                <a href="/search/" class="btn btn-primary">Barcha e'lonlar</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

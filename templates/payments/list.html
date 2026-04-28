@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To'lovlar — Uy-Joy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/"><i class="fas fa-home me-2"></i>Uy-Joy</a>
+        <div class="d-flex gap-2">
+            <a href="/analytics/" class="btn btn-outline-light btn-sm">Dashboard</a>
+            <a href="/accounts/logout/" class="btn btn-outline-light btn-sm">Chiqish</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <h4 class="fw-bold mb-4"><i class="fas fa-credit-card text-primary me-2"></i>To'lovlar tarixi</h4>
+    <div class="card p-4">
+        {% if payments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Sana</th>
+                        <th>Tur</th>
+                        <th>Miqdor</th>
+                        <th>Holat</th>
+                        <th>To'lov tizimi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ payment.get_payment_type_display }}</td>
+                        <td class="fw-bold text-primary">{{ payment.amount|floatformat:0 }} {{ payment.currency }}</td>
+                        <td>
+                            <span class="badge {% if payment.status == 'success' %}bg-success{% elif payment.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ payment.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ payment.get_provider_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Hozircha to'lovlar yo'q</p>
+            <a href="/payments/premium/" class="btn btn-primary btn-sm">Premium olish</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
