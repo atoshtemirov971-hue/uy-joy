@@ -34,7 +34,7 @@ class Command(BaseCommand):
                     'Angren', 'Bekobod', 'Bostonliq', 'Buka', 'Chinoz',
                     'Chirchiq', 'Qibray', 'Ohangaron', 'Olmaliq', 'Oqqorgon',
                     'Parkent', 'Piskent', 'Quyi Chirchiq', 'Toshkent tumani',
-                    'Uychi', 'Yangiyo\'l', 'Yuqori Chirchiq', 'Zangiota',
+                    'Yangiyo\'l', 'Yuqori Chirchiq', 'Zangiota',
                 ]
             },
             'Samarqand viloyati': {
@@ -91,10 +91,9 @@ class Command(BaseCommand):
             'Surxondaryo viloyati': {
                 'slug': 'surxondaryo',
                 'districts': [
-                    'Termiz shahri', 'Angor', 'Bandixon', 'Bo\'ysuн',
-                    'Denov', 'Jarqo\'rg\'on', 'Muzrabot', 'Oltinsoy',
-                    'Qiziriq', 'Qumqo\'rg\'on', 'Sariosiyo', 'Sherobod',
-                    'Shurchi', 'Uzun',
+                    'Termiz shahri', 'Angor', 'Bandixon', 'Denov',
+                    'Jarqo\'rg\'on', 'Muzrabot', 'Oltinsoy', 'Qiziriq',
+                    'Qumqo\'rg\'on', 'Sariosiyo', 'Sherobod', 'Shurchi', 'Uzun',
                 ]
             },
             'Xorazm viloyati': {
@@ -125,7 +124,7 @@ class Command(BaseCommand):
                 'districts': [
                     'Guliston shahri', 'Boyovut', 'Xavast', 'Mirzaobod',
                     'Oqoltin', 'Sardoba', 'Sayxunobod', 'Shirin',
-                    'Sirdayo tumani',
+                    'Sirdaryo tumani',
                 ]
             },
             "Qoraqalpog'iston Respublikasi": {
@@ -145,7 +144,7 @@ class Command(BaseCommand):
                 defaults={'name': region_name, 'slug': region_data['slug']}
             )
             for district_name in region_data['districts']:
-                slug = district_name.lower().replace(' ', '-').replace("'", '').replace("'", '').replace('\'', '')
+                slug = district_name.lower().replace(' ', '-').replace("'", '').replace('\u2019', '').replace("'", '')
                 District.objects.get_or_create(
                     slug=slug,
                     defaults={
@@ -156,4 +155,17 @@ class Command(BaseCommand):
                 )
             self.stdout.write(f'✅ {region_name} va tumanlari qoshildi!')
 
-        self.stdout.write('🎉 Barcha ma\'lumotlar muvaffaqiyatli qoshildi!')
+        # Superuser yaratish
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser(
+                username='admin',
+                email='admin@uyjoy.uz',
+                password='Admin12345!'
+            )
+            self.stdout.write('✅ Superuser yaratildi!')
+        else:
+            self.stdout.write('✅ Superuser allaqachon bor!')
+
+        self.stdout.write('🎉 Barcha malumotlar muvaffaqiyatli qoshildi!')
